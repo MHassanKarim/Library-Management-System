@@ -1,0 +1,143 @@
+{% extends "base.html" %} {% block title %}Transactions Management{% endblock %} {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Transactions Management</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#issueBookModal">
+        <i class="bi bi-plus-circle"></i> Issue New Book
+    </button>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">All Transactions</h5>
+    </div>
+    <div class="card-body">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Book</th>
+                        <th>Member</th>
+                        <th>Issued On</th>
+                        <th>Due Date</th>
+                        <th>Returned On</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr class="{% if transaction.due_date < datetime.now() and not transaction.return_date %}table-warning{% endif %}">
+                        <td>{{ transaction.id }}</td>
+                        <td>
+                            <a href="{{ url_for('books') }}?search={{ transaction.book.title }}" class="text-decoration-none">
+                                {{ transaction.book.title }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('members') }}?search={{ transaction.member.name }}" class="text-decoration-none">
+                                {{ transaction.member.name }}
+                            </a>
+                        </td>
+                        <td>{{ transaction.issue_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="{% if transaction.due_date < datetime.now() and not transaction.return_date %}text-danger fw-bold{% endif %}">
+                            {{ transaction.due_date.strftime('%Y-%m-%d') }}
+                        </td>
+                        <td>
+                            {% if transaction.return_date %} {{ transaction.return_date.strftime('%Y-%m-%d') }} {% else %}
+                            <span class="text-muted">-</span> {% endif %}
+                        </td>
+                        <td>
+                            {% if transaction.return_date %}
+                            <span class="badge bg-success">Returned</span> {% elif transaction.due_date
+                            < datetime.now() %} <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                <span class="badge bg-warning">Issued</span> {% endif %}
+                        </td>
+                        <td>
+                            {% if not transaction.return_date %}
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('return_book', id=transaction.id) }}" class="btn btn-sm btn-success" title="Return this book">
+                                    <i class="bi bi-arrow-return-left"></i> Return
+                                </a>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No transactions found.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Issue Book Modal -->
+<div class="modal fade" id="issueBookModal" tabindex="-1" aria-labelledby="issueBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="issueBookModalLabel">Issue New Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('issue_book') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="bookSelect" class="form-label">Book</label>
+                        <select class="form-select" id="bookSelect" name="book_id" required>
+                            <option value="" selected disabled>Select Book</option>
+                            {% for book in books %}
+                                {% if book.copies > 0 %}
+                                    <option value="{{ book.id }}">
+                                        {{ book.title }} ({{ book.copies }} available) - {{ book.author }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Only books with available copies are shown</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="memberSelect" class="form-label">Member</label>
+                        <select class="form-select" id="memberSelect" name="member_id" required>
+                            <option value="" selected disabled>Select Member</option>
+                            {% for member in members %}
+                                <option value="{{ member.id }}">
+                                    {{ member.name }} ({{ member.email|default('No email', true) }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Due Date</label>
+                        <input type="text" class="form-control" value="{{ (datetime.now() + timedelta(days=14)).strftime('%Y-%m-%d') }}" disabled>
+                        <div class="form-text">Books are due in 14 days</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Issue Book
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+    // Initialize select2 for better select controls
+    $(document).ready(function() {
+        $('#bookSelect, #memberSelect').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}

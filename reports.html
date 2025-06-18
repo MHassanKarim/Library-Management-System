@@ -1,0 +1,71 @@
+{% extends "base.html" %} {% block title %}Reports & Analytics{% endblock %} {% block content %}
+<h2 class="mb-4">Reports & Analytics</h2>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Most Popular Books</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Total Issues</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in popular_books %}
+                        <tr>
+                            <td>{{ book.title }}</td>
+                            <td>{{ book.total_issues }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Most Active Members</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Books Issued</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in active_members %}
+                        <tr>
+                            <td>{{ member.name }}</td>
+                            <td>{{ member.total_books }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Overdue Books</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    There are currently {{ overdue_books }} overdue books.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
